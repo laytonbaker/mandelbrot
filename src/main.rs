@@ -1,5 +1,6 @@
 use num::Complex;
 use rayon::prelude::*;
+use std::time::Instant;
 
 /// Try to determine if `c` is in the Mandelbrot set, using at most `limit`
 /// iterations to decide.
@@ -171,6 +172,8 @@ fn main() {
 
     let mut pixels = vec![0; bounds.0 * bounds.1];
 
+    let start = Instant::now();
+
     // Scope of slicing up `pixels` into horizontal bands.
     {
         let bands: Vec<(usize, &mut [u8])> = pixels
@@ -179,7 +182,6 @@ fn main() {
             .collect();
 
         bands.into_par_iter()
-            .weight_max()
             .for_each(|(i, band)| {
                 let top = i;
                 let band_bounds = (bounds.0, 1);
@@ -191,5 +193,6 @@ fn main() {
             });
     }
 
+    println!("rendering took: {:?}", start.elapsed());
     write_image(&args[1], &pixels, bounds).expect("error writing PNG file");
 }
